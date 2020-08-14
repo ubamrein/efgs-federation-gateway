@@ -288,7 +288,7 @@ ByteStream = DiagnosisKeyBatch ;
 
 DiagnosisKeyBatch = { DiagnosisKey } ;
 
-DiagnosisKey = keyData, rollingStartIntervalNumber, rollingPeriod, transmissionRiskLevel, visitedCountries, origin, verificationType ;
+DiagnosisKey = keyData, rollingStartIntervalNumber, rollingPeriod, transmissionRiskLevel, visitedCountries, origin, reportType, daysSinceOnsetOfSymptoms ;
 
 
 | Order        | Fieldname     | Start at Pos. |  Bytes  |Type (protobuf)	| Notes  |

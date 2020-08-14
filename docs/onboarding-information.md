@@ -1,30 +1,30 @@
-#Onboarding Information EU Federation Gateway Service
+# Onboarding Information EU Federation Gateway Service
 The following document describes how to transmit diagnosis keys of the Exposure Notification API to the EU Federation Gateway Service (EFGS).
 Please read the software design document for more detailed and technical information.
 
-##Prerequisites
+## Prerequisites
 In order to transmit diagnosis keys you need two certificates:
 
-###Signing Certificate
+### Signing Certificate
 A signing certificate is needed to create signatures for the batches of diagnosis keys.
 You can create the signing certificate by your own.
 Either create a self signed certificate or issue a certificate which is signed by a CA of your choice.
 Please notice: The country attribute of you signing certificate must be your 2-letter country abbreviation. 
 For the uploaded data to be accepted, the SHA-256 hash of the certificate (not the private key) must be transmitted to the operations team. (please ask your personal contact person)
 
-###Authentication Certificate
+### Authentication Certificate
 The REST service itself is secured with mTLS. The personal client certificate will be issued by EFGS team. (please ask your personal contact person)
 
-###Infrastructure
+### Infrastructure
 The server on which your federation client runs needs to be publicly reachable.
 This is needed because the EFGS will notify your service about new diagnosis key batches via the callback feature.
 
-###Callback Certificate
+### Callback Certificate
 The callback request will be done with mTLS, too.
 To be able to get notified via callbacks the EFGS team needs a client certificate to access your infrastructure.
 Please ask your personal contact person to transmit the certificate.
 
-##Upload keys
+## Upload keys
 The uploading of keys has to be done in batches. (At the moment 5000 keys at once can be uploaded - this value can change in future).
 To upload your keys it is suggested to transmit them in Protobuf format. You can find a Protobuf format file in this repository (src/main/proto/Efgs.proto).
 If it is not possible for you to transmit data in Protobuf format also a JSON formatted upload would be possible.
@@ -42,7 +42,7 @@ The following headers must be set:
 
 The backend will respond with a 201 status code if all diagnosis keys could be added. For further details about status codes and possible errors please consult the OpenAPI documentation.
 
-###Upload Signing
+### Upload Signing
 
 Each batch of uploaded data needs to be signed. The signing is done over the raw data to avoid different signatures because of different property fields.
 Detailed information about the signing process can be found in software-design document in section 3.2 Signature Verification.
@@ -95,7 +95,7 @@ With this method the signature of the previously calculated bytes can be calcula
   }
 ```
 
-##Download batches
+## Download batches
 The EFGS automaticaly bundles uploaded diagnosis keys to batches.
 These batches are tagged with a batchtag (not the upload batchtag!).
 It is not possible to download keys from your own country!
@@ -110,23 +110,23 @@ If a download response has the response header ```batchTag``` with the string va
 
 The data is - like the uploaded data - primary transferred as Protobuf messages. (JSON as fallback is possible)
 
-##Verify Batch Integrity
+## Verify Batch Integrity
 
 tbd
 
-##Automatically receive updates (Callbacks, not yet implemented)
+## Automatically receive updates (Callbacks, not yet implemented)
 The EFGS automatically notifies national backends about newly created batches which are ready to download.
 
-###Register Callback
+### Register Callback
 To receive the updates at first the registration of a callback is required. To do this send a PUT request against the ```/efgs/callback/{{id}}``` endpoint.
 It is required to provide two parameters.
 The first ```id``` is provided in request path. This id is your personal identifier to manage your callback subscriptions. You can choose this identifier randomly.
 The second parameter is a query parameter which needs to be appended to the request url: ```url```. The url parameter contains the url the EFGS should send the callback notification to.
 
-###Unregister Callback
+### Unregister Callback
 To stop receiving updates just perform a DELETE request against the ```/efgs/callback/{{id}}``` endpoint. As id you have to use the id from the registration of the callback.
 
-###Receive a Callback
+### Receive a Callback
 The backend will perform a GET request against the url you have provided at registration. The request has no body, but two query parameters:
 
 | query parameter | example | content |

@@ -2,6 +2,8 @@
 The following document describes how to transmit diagnosis keys of the Exposure Notification API to the EU Federation Gateway Service (EFGS).
 Please read the software design document for more detailed and technical information.
 
+This document is not finished and major aspects are missing. This document is still in proposal state, meaning feedback is welcome and will change its content.
+
 ## Prerequisites
 In order to transmit diagnosis keys you need two certificates:
 

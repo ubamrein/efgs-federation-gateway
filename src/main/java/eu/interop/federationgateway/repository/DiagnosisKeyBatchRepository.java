@@ -2,7 +2,7 @@
  * ---license-start
  * EU-Federation-Gateway-Service / efgs-federation-gateway
  * ---
- * Copyright (C) 2020 T-Systems International GmbH and all other contributors
+ * Copyright (C) 2020 - 2021 T-Systems International GmbH and all other contributors
  * ---
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 public interface DiagnosisKeyBatchRepository extends JpaRepository<DiagnosisKeyBatchEntity, Long> {
 
   @Modifying
-  int deleteByCreatedAtBefore(ZonedDateTime before);
+  @Query("DELETE FROM DiagnosisKeyBatchEntity d WHERE d.createdAt < :before")
+  int deleteByCreatedAtBefore(@Param("before") ZonedDateTime before);
 
   Optional<DiagnosisKeyBatchEntity> findByBatchName(String name);
 

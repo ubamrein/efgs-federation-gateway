@@ -2,7 +2,7 @@
  * ---license-start
  * EU-Federation-Gateway-Service / efgs-federation-gateway
  * ---
- * Copyright (C) 2020 T-Systems International GmbH and all other contributors
+ * Copyright (C) 2020 - 2021 T-Systems International GmbH and all other contributors
  * ---
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,8 +87,7 @@ public class CallbackTaskExecutorService {
 
       if (callbackResult) {
         log.info("Successfully executed callback. Deleting callback task from database");
-        transactionalCallbackTaskExecutorService.removeNotBeforeForNextTask(currentTask);
-        transactionalCallbackTaskExecutorService.deleteTask(currentTask);
+        transactionalCallbackTaskExecutorService.removeNotBeforeForNextTaskAndDeleteTask(currentTask);
       } else {
         if (currentTask.getRetries() >= efgsProperties.getCallback().getMaxRetries()) {
           log.error("Callback reached max amount of retries. Deleting callback subscription.");

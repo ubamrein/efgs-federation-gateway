@@ -23,6 +23,7 @@ package eu.interop.federationgateway.filter;
 import eu.interop.federationgateway.config.EfgsProperties;
 import eu.interop.federationgateway.entity.CertificateEntity;
 import eu.interop.federationgateway.service.CertificateService;
+import eu.interop.federationgateway.utils.CertificateUtils;
 import eu.interop.federationgateway.utils.EfgsMdc;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -131,9 +132,16 @@ public class CertificateAuthentificationFilter extends OncePerRequestFilter {
 
     String headerDistinguishedName =
       httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getDistinguishedName());
+    String certificateHash = httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getThumbprint());
 
-    String headerCertThumbprint = normalizeCertificateHash(
-      httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getThumbprint()));
+    if (properties.getCertAuth().getHeaderFields().getCalculateHash()) {
+      String certificate = httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getFullCert());
+      certificateHash = CertificateUtils.getCertThumbprint(
+          CertificateUtils.getCertificateFromRawString(certificate)
+      );
+    }
+
+    String headerCertThumbprint = normalizeCertificateHash(certificateHash);
 
     if (headerDistinguishedName == null || headerCertThumbprint == null) {
       log.error("No thumbprint or distinguish name");

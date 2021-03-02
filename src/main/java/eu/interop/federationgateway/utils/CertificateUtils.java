@@ -91,8 +91,8 @@ public class CertificateUtils {
    */
   public static X509Certificate getCertificateFromRawString(String rawData) {
     String normalizedData = rawData;
-    // Check if there is a urlencoded newline in the header
-    if (rawData.toLowerCase().contains("%0a")) {
+    // Check if there is a % in the header (we assume this indicates urlencoding)
+    if (rawData.contains("%")) {
       try {
         normalizedData = URLDecoder.decode(normalizedData, StandardCharsets.UTF_8);
       } catch (IllegalArgumentException ex) {
@@ -108,7 +108,9 @@ public class CertificateUtils {
         // remove PEM suffix
         .replace("-----END CERTIFICATE-----", "")
         // remove all whitespaces
-        .replace("\n", "").replace(" ", "").trim();
+        .replace("\n", "")
+        .replace("\r", "")
+        .replace(" ", "").trim();
     // now we should have a base64 encoded string of the DER-representation of the
     // certificate
     try {

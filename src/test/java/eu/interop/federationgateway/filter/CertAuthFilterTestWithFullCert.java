@@ -85,7 +85,7 @@
 
       diagnosisKeyEntityRepository.deleteAll();
       diagnosisKeyBatchRepository.deleteAll();
-      properties.getCertAuth().getHeaderFields().setCalculateHash(true);
+      properties.getCertAuth().getHeaderFields().setUseFullCertificate(true);
 
       mockMvc = MockMvcBuilders.webAppContextSetup(context).addFilter(certFilter).build();
     }
@@ -117,7 +117,6 @@
 
       mockMvc.perform(get("/diagnosiskeys/download/s").accept("application/protobuf; version=1.0")
         .header(properties.getCertAuth().getHeaderFields().getFullCert(), base64DERcertificate)
-        .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=DE,U=Abteilung XYZ,TR=test")
       ).andExpect(mvcResult -> {
         Assert.assertEquals("DE", mvcResult.getRequest().getAttribute(CertificateAuthentificationFilter.REQUEST_PROP_COUNTRY));
       });
@@ -130,7 +129,6 @@
 
       mockMvc.perform(get("/diagnosiskeys/download/s").accept("application/protobuf; version=1.0")
         .header(properties.getCertAuth().getHeaderFields().getFullCert(), urlEncodedPem)
-        .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=DE,U=Abteilung XYZ,TR=test")
       ).andExpect(mvcResult -> {
         Assert.assertEquals("DE", mvcResult.getRequest().getAttribute(CertificateAuthentificationFilter.REQUEST_PROP_COUNTRY));
       });
@@ -143,7 +141,6 @@
 
       mockMvc.perform(get("/diagnosiskeys/download/s").accept("application/protobuf; version=1.0")
         .header(properties.getCertAuth().getHeaderFields().getFullCert(), urlEncodedPem)
-        .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=DE,U=Abteilung XYZ,TR=test")
       ).andExpect(mvcResult -> {
         Assert.assertEquals("DE", mvcResult.getRequest().getAttribute(CertificateAuthentificationFilter.REQUEST_PROP_COUNTRY));
       });
@@ -155,7 +152,6 @@
 
       mockMvc.perform(get("/diagnosiskeys/download/s").accept("application/protobuf; version=1.0")
         .header(properties.getCertAuth().getHeaderFields().getFullCert(), PemEscapedLineEndingsCertificate)
-        .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=DE,U=Abteilung XYZ,TR=test")
       ).andExpect(mvcResult -> {
         Assert.assertEquals("DE", mvcResult.getRequest().getAttribute(CertificateAuthentificationFilter.REQUEST_PROP_COUNTRY));
       });
@@ -167,7 +163,6 @@
 
       mockMvc.perform(get("/diagnosiskeys/download/s").accept("application/protobuf; version=1.0")
         .header(properties.getCertAuth().getHeaderFields().getFullCert(), PemEscapedWindowsLineEndingsCertificate)
-        .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=DE,U=Abteilung XYZ,TR=test")
       ).andExpect(mvcResult -> {
         Assert.assertEquals("DE", mvcResult.getRequest().getAttribute(CertificateAuthentificationFilter.REQUEST_PROP_COUNTRY));
       });

@@ -105,7 +105,7 @@ public class EfgsProperties {
       private String thumbprint;
       private String distinguishedName;
       private String fullCert;
-      private Boolean calculateHash = false;
+      private Boolean useFullCertificate = false;
     }
   }
 }

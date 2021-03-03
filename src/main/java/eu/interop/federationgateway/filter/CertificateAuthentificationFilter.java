@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
@@ -134,11 +135,13 @@ public class CertificateAuthentificationFilter extends OncePerRequestFilter {
       httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getDistinguishedName());
     String certificateHash = httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getThumbprint());
 
-    if (properties.getCertAuth().getHeaderFields().getCalculateHash()) {
+    if (properties.getCertAuth().getHeaderFields().getUseFullCertificate()) {
       String certificate = httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getFullCert());
+      X509Certificate clientCertificate = CertificateUtils.getCertificateFromRawString(certificate);
       certificateHash = CertificateUtils.getCertThumbprint(
-          CertificateUtils.getCertificateFromRawString(certificate)
+        clientCertificate
       );
+      headerDistinguishedName = clientCertificate.getSubjectDN().toString();
     }
 
     String headerCertThumbprint = normalizeCertificateHash(certificateHash);
@@ -149,8 +152,11 @@ public class CertificateAuthentificationFilter extends OncePerRequestFilter {
         httpServletRequest, httpServletResponse, null, new ResponseStatusException(HttpStatus.FORBIDDEN));
       return;
     }
-
-    headerDistinguishedName = URLDecoder.decode(headerDistinguishedName, StandardCharsets.UTF_8);
+    // if we have a full cert present in the header read the DN string directly
+    // as it is not url encoded
+    if (!properties.getCertAuth().getHeaderFields().getUseFullCertificate()) {
+      headerDistinguishedName = URLDecoder.decode(headerDistinguishedName, StandardCharsets.UTF_8);
+    }
 
     EfgsMdc.put("dnString", headerDistinguishedName);
     EfgsMdc.put("thumbprint", headerCertThumbprint);

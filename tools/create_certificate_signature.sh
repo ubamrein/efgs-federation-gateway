@@ -49,7 +49,7 @@ purpose='SIGNING'
 fi
 
 
-template="INSERT INTO certificate VALUES(NULL, '$currentdate', '$fingerprint', '$country', '$purpose', FALSE, NULL, '$signature', FROM_BASE64('$cert_base64'))";
+template="INSERT INTO certificate VALUES(DEFAULT, '$currentdate', '$fingerprint', '$country', '$purpose', FALSE, NULL, '$signature', convert_from(decode('$cert_base64', 'base64'), 'utf-8'))";
 echo $template > insert.sql
 
 echo [4 of 4] Cleaning up...

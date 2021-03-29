@@ -29,6 +29,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Getter;
 import lombok.NonNull;
@@ -68,7 +69,7 @@ public class DiagnosisKeyEntityService {
    * @param diagnosisKeyEntities the diagnosis key entities
    * @throws DiagnosisKeyInsertException will be thrown if an error occurred during insertion.
    */
-  @Transactional(rollbackOn = DiagnosisKeyInsertException.class)
+  @Transactional(dontRollbackOn = DiagnosisKeyInsertException.class)
   public void saveDiagnosisKeyEntities(
     List<DiagnosisKeyEntity> diagnosisKeyEntities
   ) throws DiagnosisKeyInsertException {
@@ -76,18 +77,27 @@ public class DiagnosisKeyEntityService {
     resultMap.put(201, new ArrayList<>());
     resultMap.put(409, new ArrayList<>());
     resultMap.put(500, new ArrayList<>());
-
     ZonedDateTime uploadTimestamp = ZonedDateTime.now(ZoneOffset.UTC);
+    
+    List<String> hashes = 
+                diagnosisKeyEntities.stream().map((key) -> key.getPayloadHash()).collect(Collectors.toList());
+    List<DiagnosisKeyEntity> duplicates = diagnosisKeyEntityRepository.getDiagnosisKeysByHash(hashes);
 
     for (int index = 0; index < diagnosisKeyEntities.size(); index++) {
       DiagnosisKeyEntity key = diagnosisKeyEntities.get(index);
+
+      if (duplicates.contains(key)) {
+        resultMap.get(409).add(index);
+        continue;
+      } 
+
       key.setCreatedAt(uploadTimestamp);
       try {
         saveDiagnosisKeyEntity(key);
         resultMap.get(201).add(index);
       } catch (DataIntegrityViolationException e) {
-        log.error("{}: {}", index, e.getMessage());
         resultMap.get(409).add(index);
+        log.error("{}: {}", index, e.getMessage());
       } catch (Exception e) {
         resultMap.get(500).add(index);
       }

@@ -57,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -68,6 +69,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Slf4j
 @SpringBootTest
 @RunWith(SpringRunner.class)
+@ActiveProfiles("psql")
 @ContextConfiguration(classes = EfgsTestKeyStore.class)
 public class UploadControllerTest {
 
@@ -163,6 +165,48 @@ public class UploadControllerTest {
     )
       .andExpect(status().isCreated())
       .andExpect(result -> Assert.assertEquals(batch.getKeysCount(), diagnosisKeyEntityRepository.count()));
+  }
+
+  @Test
+  public void testServerHandlesDuplicatesCorrectly() throws Exception {
+      EfgsProto.DiagnosisKey key1 = buildKey(1);
+      EfgsProto.DiagnosisKey key2 = buildKey(2);
+      EfgsProto.DiagnosisKey key3 = buildKey(3);
+
+      EfgsProto.DiagnosisKey key4 = buildKey(4);
+      EfgsProto.DiagnosisKey key5 = buildKey(5);
+      EfgsProto.DiagnosisKeyBatch batch = EfgsProto.DiagnosisKeyBatch.newBuilder()
+      .addAllKeys(Arrays.asList(key1, key2, key3)).build();
+
+    byte[] bytesToSign = BatchSignatureUtilsTest.createBytesToSign(batch);
+    String signature = signatureGenerator.sign(bytesToSign, TestData.validCertificate);
+
+    mockMvc.perform(post("/diagnosiskeys/upload")
+      .contentType("application/protobuf; version=1.0")
+      .header("batchTag", TestData.FIRST_BATCHTAG)
+      .header("batchSignature", signature)
+      .header(properties.getCertAuth().getHeaderFields().getThumbprint(), TestData.AUTH_CERT_HASH)
+      .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), TestData.DN_STRING_DE)
+      .content(batch.toByteArray())
+    ) .andExpect(status().isCreated())
+      .andExpect(result -> Assert.assertEquals(batch.getKeysCount(), diagnosisKeyEntityRepository.count()));
+
+    EfgsProto.DiagnosisKeyBatch batch2 = EfgsProto.DiagnosisKeyBatch.newBuilder()
+      .addAllKeys(Arrays.asList(key4, key5, key1)).build();
+
+    byte[] bytesToSign2 = BatchSignatureUtilsTest.createBytesToSign(batch2);
+    String signature2 = signatureGenerator.sign(bytesToSign2, TestData.validCertificate);
+
+    mockMvc.perform(post("/diagnosiskeys/upload")
+      .contentType("application/protobuf; version=1.0")
+      .header("batchTag", TestData.SECOND_BATCHTAG)
+      .header("batchSignature", signature2)
+      .header(properties.getCertAuth().getHeaderFields().getThumbprint(), TestData.AUTH_CERT_HASH)
+      .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), TestData.DN_STRING_DE)
+      .content(batch2.toByteArray())
+    )
+      .andExpect(status().is(207))
+      .andExpect(result -> Assert.assertEquals(batch2.getKeysCount()-1 + batch.getKeysCount(), diagnosisKeyEntityRepository.count() ));
   }
 
   @Test

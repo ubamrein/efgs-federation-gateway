@@ -4,8 +4,8 @@ spring:
   profiles:
     active:
       - test
-    include:
-      - dev
+    # include:
+      # - dev
   application:
     name: eu-interop-federation-gateway
   liquibase:
